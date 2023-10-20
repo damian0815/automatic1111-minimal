@@ -1,33 +1,33 @@
-FROM pytorch/pytorch:2.0.1-cuda11.7-cudnn8-runtime
+FROM nvidia/cuda:11.7.1-cudnn8-runtime-ubuntu22.04
 
 ENV DEBIAN_FRONTEND=noninteractive
 RUN apt-get update \
-    && apt-get install -y libgl1 libglib2.0-0 \
+    && apt-get install -y wget git python3 python3-venv libgl1 libglib2.0-0 \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
 RUN useradd -m webui
 
-# Switch to 'myuser'
-USER webui
+COPY prepare.py /home/webui/prepare.py
+COPY webui.sh /home/webui/webui.sh
+RUN chown --recursive webui:webui /home/webui
 
+USER webui
 WORKDIR /home/webui
 
-RUN wget -q https://raw.githubusercontent.com/AUTOMATIC1111/stable-diffusion-webui/master/webui.sh \
-    && bash webui.sh \
-    && pip install -r stable-diffusion-webui/requirements_versions.txt \
-    && rm -rf stable-diffusion-webui/stable-diffusion-webui.git
+ENV PIP_NO_CACHE_DIR=false
 
-COPY prepare.py /home/webui/stable-diffusion-webui/prepare.py
-
-RUN COMMANDLINE_ARGS="--skip-torch-cuda-test" python stable-diffusion-webui/prepare.py \
-    && rm -rf $(find . -name "*.safetensors") \
-    && rm -rf $(find . -name ".git")
+RUN COMMANDLINE_ARGS="--skip-torch-cuda-test" bash webui.sh \
+    && rm -rf $(find . -name "*.safetensors")
 
 WORKDIR /home/webui/stable-diffusion-webui
 
 ENV NVIDIA_VISIBLE_DEVICES=all
-ENV CLI_ARGS="--allow-code --lovram --xformers --enable-insecure-extension-access --api"
+ENV CLI_ARGS="--allow-code --medvram --xformers --enable-insecure-extension-access --api"
 EXPOSE 7860
 
-CMD python launch.py
+ENV GRADIO_SERVER_NAME=0.0.0.0
+ENV GRADIO_SERVER_PORT=7860
+
+RUN mkdir -p /home/webui/stable-diffusion-webui/models/Stable-diffusion/
+CMD ["bash", "-c", "source /home/webui/stable-diffusion-webui/venv/bin/activate && ls /data && cp /data/weights/* /home/webui/stable-diffusion-webui/models/Stable-diffusion/ || echo NOPE && python launch.py"]
