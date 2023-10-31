@@ -6,11 +6,11 @@ RUN apt-get update \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
-RUN useradd -u 1001 -m student
+RUN adduser --uid 1001 --shell /bin/bash student
 
 COPY prepare.py /home/student/prepare.py
 COPY webui.sh /home/student/webui.sh
-RUN chown --recursive student:student /home/student
+RUN chown -R 1001:1001 /home/student
 
 USER student
 WORKDIR /home/student
