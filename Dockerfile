@@ -12,7 +12,7 @@ COPY prepare.py /home/student/prepare.py
 COPY webui.sh /home/student/webui.sh
 RUN chown -R 1001:1001 /home/student
 
-USER student
+USER 1001
 WORKDIR /home/student
 
 ENV PIP_NO_CACHE_DIR=false
