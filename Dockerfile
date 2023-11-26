@@ -23,11 +23,10 @@ RUN COMMANDLINE_ARGS="--skip-torch-cuda-test" bash webui.sh \
 WORKDIR /home/student/stable-diffusion-webui
 
 ENV NVIDIA_VISIBLE_DEVICES=all
-ENV CLI_ARGS="--allow-code --medvram --xformers --enable-insecure-extension-access --api"
 EXPOSE 7860
 
 ENV GRADIO_SERVER_NAME=0.0.0.0
 ENV GRADIO_SERVER_PORT=7860
 
 RUN mkdir -p /home/student/stable-diffusion-webui/models/Stable-diffusion/
-CMD ["bash", "-c", "source /home/student/stable-diffusion-webui/venv/bin/activate && ls /data && cp /data/weights/* /home/student/stable-diffusion-webui/models/Stable-diffusion/ || echo NOPE && python launch.py"]
+CMD ["bash", "-c", "source /home/student/stable-diffusion-webui/venv/bin/activate && ls /data && cp /data/weights/* /home/student/stable-diffusion-webui/models/Stable-diffusion/ || echo NOPE && python launch.py --opt-sdp-attention --no-half-vae"]
